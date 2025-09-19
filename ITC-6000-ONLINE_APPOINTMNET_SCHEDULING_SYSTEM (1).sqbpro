@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="ITC-6000-ONLINE_APPOINTMNET_SCHEDULING_SYSTEM.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="2064"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="Appointments" custom_title="0" dock_id="1" table="4,12:mainAppointments"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011700ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">CREATE TABLE Users (
+    User_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Email TEXT NOT NULL UNIQUE,
+    Role TEXT NOT NULL  -- Customer, Business Owner, Staff, Admin
+);
+
+-- Creating the Services Table
+CREATE TABLE Services (
+    Service_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Duration INTEGER NOT NULL,  -- Duration in minutes
+    Price REAL NOT NULL
+);
+
+-- Creating the Appointments Table
+CREATE TABLE Appointments (
+    Appointment_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Date TEXT NOT NULL,
+    Time TEXT NOT NULL,
+    Status TEXT NOT NULL,  -- Pending, Confirmed, Cancelled
+    User_ID INTEGER,
+    Service_ID INTEGER,
+    FOREIGN KEY (User_ID) REFERENCES Users(User_ID),
+    FOREIGN KEY (Service_ID) REFERENCES Services(Service_ID)
+);
+
+-- Creating the Payments Table
+CREATE TABLE Payments (
+    Payment_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Amount REAL NOT NULL,
+    Payment_Method TEXT NOT NULL,  -- Credit Card, Cash, etc.
+    Status TEXT NOT NULL,  -- Completed, Pending, Failed
+    Appointment_ID INTEGER,
+    FOREIGN KEY (Appointment_ID) REFERENCES Appointments(Appointment_ID)
+);
+
+-- Creating the Reminders Table
+CREATE TABLE Reminders (
+    Reminder_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Appointment_ID INTEGER,
+    Sent_Status TEXT NOT NULL,  -- Sent, Not Sent
+    Sent_Time TEXT NOT NULL,
+    FOREIGN KEY (Appointment_ID) REFERENCES Appointments(Appointment_ID)
+);
+
+-- Inserting Data into Users Table
+INSERT INTO Users (Name, Email, Role) VALUES ('Aditya Thakar', 'aditya@example.com', 'Customer');
+INSERT INTO Users (Name, Email, Role) VALUES ('Prachi Sharma', 'prachi@example.com', 'Business Owner');
+INSERT INTO Users (Name, Email, Role) VALUES ('Aditya Raj', 'rajaditya@example.com', 'Staff');
+INSERT INTO Users (Name, Email, Role) VALUES ('Prarthna parekh', 'david@example.com', 'Admin');
+
+-- Inserting Data into Services Table
+INSERT INTO Services (Name, Duration, Price) VALUES ('Haircut', 30, 15.0);
+INSERT INTO Services (Name, Duration, Price) VALUES ('Consultation', 60, 50.0);
+INSERT INTO Services (Name, Duration, Price) VALUES ('Massage', 45, 30.0);
+
+-- Inserting Data into Appointments Table
+INSERT INTO Appointments (Date, Time, Status, User_ID, Service_ID) VALUES ('2025-03-16', '10:00', 'Confirmed', 1, 1);
+INSERT INTO Appointments (Date, Time, Status, User_ID, Service_ID) VALUES ('2025-03-17', '12:00', 'Pending', 1, 2);
+INSERT INTO Appointments (Date, Time, Status, User_ID, Service_ID) VALUES ('2025-03-18', '14:00', 'Cancelled', 1, 3);
+
+-- Inserting Data into Payments Table
+INSERT INTO Payments (Amount, Payment_Method, Status, Appointment_ID) VALUES (15.0, 'Credit Card', 'Completed', 1);
+INSERT INTO Payments (Amount, Payment_Method, Status, Appointment_ID) VALUES (50.0, 'Cash', 'Pending', 2);
+
+-- Inserting Data into Reminders Table
+INSERT INTO Reminders (Appointment_ID, Sent_Status, Sent_Time) VALUES (1, 'Sent', '2025-03-15 10:00');
+INSERT INTO Reminders (Appointment_ID, Sent_Status, Sent_Time) VALUES (2, 'Not Sent', '2025-03-16 10:00');
+
+
+
+-- 1. Show all appointments with user details and service details
+SELECT Users.Name, Services.Name AS Service, Appointments.Date, Appointments.Time, Appointments.Status
+FROM Appointments
+JOIN Users ON Appointments.User_ID = Users.User_ID
+JOIN Services ON Appointments.Service_ID = Services.Service_ID;
+
+-- 2. Show all payments with appointment details
+SELECT Payments.Amount, Payments.Payment_Method, Payments.Status, Appointments.Date, Appointments.Time
+FROM Payments
+JOIN Appointments ON Payments.Appointment_ID = Appointments.Appointment_ID;
+
+-- 3. Show available services and their prices
+SELECT Name, Duration, Price FROM Services;
+
+-- 4. Retrieve all users and their appointment statuses
+SELECT Users.Name, Appointments.Date, Appointments.Status
+FROM Users
+LEFT JOIN Appointments ON Users.User_ID = Appointments.User_ID;
+
+-- 5. Show reminders with appointment details
+SELECT Reminders.Sent_Status, Reminders.Sent_Time, Appointments.Date, Appointments.Time
+FROM Reminders
+JOIN Appointments ON Reminders.Appointment_ID = Appointments.Appointment_ID;
+
+-- Enhanced Analytics Queries
+
+-- Most Popular Service by Bookings
+SELECT Services.Name, COUNT(Appointments.Appointment_ID) AS TotalBookings
+FROM Appointments
+JOIN Services ON Appointments.Service_ID = Services.Service_ID
+GROUP BY Services.Names
+ORDER BY TotalBookings DESC;
+
+-- Total Revenue Per Service
+SELECT Services.Name, SUM(Payments.Amount) AS TotalRevenue
+FROM Payments
+JOIN Appointments ON Payments.Appointment_ID = Appointments.Appointment_ID
+JOIN Services ON Appointments.Service_ID = Services.Service_ID
+GROUP BY Services.Name;
+
+-- User Booking Activity Report
+SELECT Users.Name, COUNT(Appointments.Appointment_ID) AS TotalAppointments
+FROM Appointments
+JOIN Users ON Appointments.User_ID = Users.User_ID
+GROUP BY Users.Name
+ORDER BY TotalAppointments DESC;q
+
+
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
